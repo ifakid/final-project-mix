@@ -3,7 +3,7 @@ const asyncHandler = require("express-async-handler")
 const User = require("../models/user.model")
 
 const getImages = asyncHandler(async (req,res) => {
-    const { id } = req.body
+    const { id } = req.query
     if (!id) {
         res.status(400)
         throw new Error("Empty field")

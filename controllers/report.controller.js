@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler")
 const Report = require("../models/report.model")
 
 const addReport = asyncHandler(async (req,res) => {
-    const { reportedBy, reportedItem, reportType, details, resolved } = req.body
+    const { reportedBy, reportedItem, reportType, details } = req.body
     if (!(reportType && reportedBy)) {
         res.status(400)
         throw new Error("Field required")
@@ -12,14 +12,19 @@ const addReport = asyncHandler(async (req,res) => {
         reportedItem,
         reportType,
         details,
-        resolved
+        resolved: false
     })
     res.status(200).json(report)
 })
 
 const getReport = asyncHandler(async (req,res) => {
-    const result = await Report.find({ resolved: false })
-    res.status(200).json(result)
+    const { resolved } = req.query
+    let query = {}
+    if (resolved) {
+        query.resolved = resolved
+    }
+    const result = await Report.find(query)
+    res.status(200).json({ "reports": result })
 })
 
 const markAsResolved = asyncHandler(async (req,res) => {

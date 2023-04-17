@@ -27,13 +27,13 @@ router.get('/find', function(req,res) {
     })
 })
 
-router.get('/all_match', function(req,res) {
+router.get('/all', function(req,res) {
     var query = "SELECT * FROM connections_by_type_uuid WHERE from_user=? AND status=?"
-    console.log(req.body)
-    if (!req.body || !req.body.id){
+    const { id } = req.query
+    if (!id){
         res.status(404).send({ message:"ID required!" })
     }
-    cassandra_db.execute(query, [req.body.id, "Match"], function(err, result) {
+    cassandra_db.execute(query, [id, "Match"], function(err, result) {
         if (err) {
             res.status(404).send({msg:err})
         } else {
@@ -66,8 +66,21 @@ router.get('/all_match', function(req,res) {
 })*/
 
 router.post('/add', function(req,res) {
-    if (!req.body || !req.body.from_user || !req.body.to_user || !req.body.status){
+    const { from_user, to_user, status } = req.body
+    if (!(from_user && to_user && status)){
         res.status(404).send({ message: "Required" })
+    }
+
+    if (status == "Like"){
+        // Fetch status
+        var query0 = "SELECT * FROM connections_uuid WHERE from_user = ? AND to_user = ?"
+        cassandra_db.execute(query, [], function(err, result) {
+            if (err) {
+                res.status(404).send({msg:err})
+            } else {
+                res.send({messages:result.rows})
+            }
+        })
     }
 
     const uid = uuid.v4()

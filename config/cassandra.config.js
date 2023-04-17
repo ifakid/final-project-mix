@@ -1,12 +1,10 @@
 var cassandra = require("cassandra-driver")
-var port1 = process.env.CASS_PORT1
-var port2 = process.env.CASS_PORT2
-var port3 = process.env.CASS_PORT3
+var ports = process.env.CASS_PORTS
 
 var username = process.env.CASS_USER
 var password = process.env.CASS_PWD
 
-const contactPoints= [port1, port2, port3]
+const contactPoints= ports.split(',')
 const authProvider = new cassandra.auth.PlainTextAuthProvider(
     username,
     password

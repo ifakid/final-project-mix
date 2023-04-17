@@ -15,9 +15,9 @@ var app = express()
 app.use(express.json())
 
 app.use('/', routes)
-app.use('/message', messageRoutes)
+app.use('/messages', messageRoutes)
 app.use('/connections', connectionRoutes)
-app.use('/user', userRoutes)
+app.use('/users', userRoutes)
 app.use('/report',reportRoutes)
 
 app.use(function (req, res, next) {

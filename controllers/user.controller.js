@@ -4,22 +4,26 @@ var cassandra_db = require("../config/cassandra.config")
 const User = require("../models/user.model")
 
 const addUser = asyncHandler(async (req,res) => {
-    const { id, about, age, discovery, email, fakultas, gender, jurusan, number, username, location, images } = req.body
-    if (!(age && email && fakultas && gender && jurusan && number && username && images)){
+    const { about, birthdate, discovery, email, fakultas, gender, jurusan, number, username, longitude, latitude, images } = req.body
+    if (!(birthdate && email && fakultas && gender && jurusan && number && username)){
         res.status(400)
         throw new Error("Empty field")
     }
+
+    const coord = [longitude, latitude]
     const user = await User.create({
-        _id: id,
         about,
-        age,
+        birthdate,
         discovery,
         email,
         fakultas,
         gender,
         jurusan,
         number,
-        location,
+        location: {
+            type: "Point",
+            coordinates: coord
+        },
         username, 
         images
     })
@@ -27,14 +31,13 @@ const addUser = asyncHandler(async (req,res) => {
 })
 
 const editUser = asyncHandler(async (req,res) => {
-    const {id, about, username} = req.body
-    if (!(id && about && username)){
+    const {id, about} = req.body
+    if (!(id && about)){
         res.status(400)
         throw new Error("Empty field")
     }
     const result = await User.findByIdAndUpdate(id, {
-        about,
-        username
+        about
     })
     if (!result){
         res.status(404).json("Not found")
@@ -74,7 +77,7 @@ const getRandom = asyncHandler(async (req,res) => {
 })
 
 const getUser = asyncHandler(async (req,res) => {
-    const { id } = req.body
+    const { id } = req.params
     if (!id) {
         res.status(400)
         throw new Error("Empty field")
@@ -88,8 +91,8 @@ const getUser = asyncHandler(async (req,res) => {
 })
 
 const updateLocation = asyncHandler(async (req,res) => {
-    const { id, lat, long } = req.body
-    if (!(id && lat && long)) {
+    const { id, latitude, longitude } = req.body
+    if (!(id && latitude && longitude)) {
         res.status(400)
         throw new Error("Empty field")
     }
@@ -97,7 +100,7 @@ const updateLocation = asyncHandler(async (req,res) => {
         $set: {
             location: {
                 type: "Point",
-                coordinates: [long, lat]
+                coordinates: [longitude, latitude]
             }
         }
     })
