@@ -1,7 +1,6 @@
 const mongoose = require("mongoose")
 
 const url = process.env.MONGO_URL
-console.log(`Database URL: ${url}`)
 
 const connectDb = async () => {
   try {

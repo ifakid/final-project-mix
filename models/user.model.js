@@ -7,7 +7,7 @@ const imageSchema = new mongoose.Schema({
         required: true
     }
 }, {
-    timestamp: true
+    timestamps: true
 })
 
 const userSchema = new mongoose.Schema({
@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema({
     about: {
         type: String
     },
-    age: {
-        type: Number,
+    birthdate: {
+        type: Date,
         required: true
     },
     discovery: {

@@ -15,8 +15,8 @@ router.get('/', function(req,res) {
 })
 
 router.get('/all/:matchid', function(req,res) {
-    var query = "SELECT * FROM messages_uuid WHERE match_id=?"
-    console.log(req.params.matchid)
+    var query = "SELECT * FROM messages WHERE match_id=?"
+
     cassandra_db.execute(query, [req.params.matchid], function(err, result) {
         if (err) {
             res.status(404).send({msg:err})
@@ -27,13 +27,13 @@ router.get('/all/:matchid', function(req,res) {
 })
 
 router.post('/send', function(req,res){
-    var query = "INSERT INTO messages_uuid (match_id, message_id, attachment_url, message_type, sender_id, text) VALUES (?,now(),?,?,?,?)"
-    if (!req.body){
+    var query = "INSERT INTO messages (match_id, message_id, attachment_url, message_type, sender_id, body) VALUES (?,now(),?,?,?,?)"
+    const { match_id, attachment_url, message_type, sender_id, body } = req.body
+    if (!(match_id && message_type && sender_id)) {
         res.status(404).send({msg:"Required"})
     }
 
-    const body = req.body
-    cassandra_db.execute(query, [body.match_id, body.attachment_url, body.message_type, body.sender_id, body.text], function(err, result) {
+    cassandra_db.execute(query, [match_id, attachment_url, message_type, sender_id, body], function(err, result) {
         if (err) {
             res.status(404).send({msg:err})
         } else {

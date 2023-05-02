@@ -9,6 +9,7 @@ var messageRoutes = require("./routes/messages.routes")
 var connectionRoutes = require("./routes/connections.routes")
 var userRoutes = require("./routes/user.routes")
 var reportRoutes = require("./routes/report.routes")
+var imageRoutes = require("./routes/image.routes")
 
 var app = express()
 
@@ -18,7 +19,8 @@ app.use('/', routes)
 app.use('/messages', messageRoutes)
 app.use('/connections', connectionRoutes)
 app.use('/users', userRoutes)
-app.use('/report',reportRoutes)
+app.use('/images', imageRoutes)
+app.use('/reports',reportRoutes)
 
 app.use(function (req, res, next) {
     var err = new Error("Not found")

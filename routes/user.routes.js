@@ -1,17 +1,13 @@
 const express = require("express")
 const router = express.Router()
 
-const { addUser, editUser, getRandom, getUser, updateLocation,  } = require("../controllers/user.controller")
-const { getImages, deleteImage, addImage } = require("../controllers/image.controller")
+const { addUser, editUser, getRandom, getUser, updateLocation, getRandomMC } = require("../controllers/user.controller")
 
-router.route("/").get(getRandom)
-router.route("/adduser").post(addUser)
-router.route("/editUser").patch(editUser)
-router.route("/find").get(getUser)
-router.route("/updateLocation").patch(updateLocation)
-
-router.route("/images").get(getImages)
-router.route("/deleteImage").delete(deleteImage)
-router.route("/addImage").post(addImage)
+router.route("/random").get(getRandom)
+router.route("/randomMC").get(getRandomMC)
+router.route("/").post(addUser)
+router.route("/").patch(editUser)
+router.route("/").get(getUser)
+router.route("/location").patch(updateLocation)
 
 module.exports = router

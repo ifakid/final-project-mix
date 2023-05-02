@@ -24,7 +24,7 @@ const deleteImage = asyncHandler(async (req,res) => {
     }
     const result1 = await User.findById(userId)
     if (result1.images.length == 1) {
-        res.status(401).json("No images left")
+        res.status(400).json("No images left")
     } else {
         const result2 = await User.findByIdAndUpdate(userId, {
             $pull: { images: {_id:imageId } }
@@ -41,7 +41,7 @@ const addImage = asyncHandler(async (req,res) => {
     }
     const result1 = await User.findById(userId)
     if (result1.images.length == 9) {
-        res.status(401).json("Too many images!")
+        res.status(400).json("Too many images!")
     } else {
         const result2 = await User.findByIdAndUpdate(userId, {
             $push: { images: { url: imageUrl }}

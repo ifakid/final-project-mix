@@ -21,7 +21,7 @@ const getReport = asyncHandler(async (req,res) => {
     const { resolved } = req.query
     let query = {}
     if (resolved) {
-        query.resolved = resolved
+        query.resolved = resolved === 'true'
     }
     const result = await Report.find(query)
     res.status(200).json({ "reports": result })

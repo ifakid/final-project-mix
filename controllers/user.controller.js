@@ -46,38 +46,154 @@ const editUser = asyncHandler(async (req,res) => {
     }
 })
 
-const getRandom = asyncHandler(async (req,res) => {
-    const { id, gender } = req.body
-    if (!(id && gender)){
+const getRandomMC = asyncHandler(async (req,res) => {
+    const { id, gender } = req.query
+    const longitude = parseFloat(req.query.longitude)
+    const latitude = parseFloat(req.query.latitude)
+    const distance = parseFloat(req.query.distance)
+    const minAge = parseInt(req.query.minAge)
+    const maxAge = parseInt(req.query.maxAge)
+
+    const now = new Date(Date.now())
+
+    if (!(id && gender && longitude && latitude)){
         res.status(400)
         throw new Error("Empty field")
     }
-    let pipeline = [
-        { $match: { gender } },
-        { $sample: { size: 20 } }
-    ]
+
+    let agg1 = { $geoNear: {
+        near: { 
+            type: "Point", 
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+        },
+        distanceField: "distance",
+    }}
+    let agg2 = { $match: { 
+        gender: gender,
+        discovery: true
+    }}
+    let agg3 = { $sample: { size: 50 } }
+
+    if (distance) {
+        agg1["$geoNear"]["maxDistance"] = distance
+    }
+    if (minAge){
+        if (!agg2["$match"]["birthdate"]) {
+            agg2["$match"]["birthdate"] = {}
+        }
+        const min_y = now.getFullYear() - minAge
+
+        agg2["$match"]["birthdate"]["$lt"] = new Date(min_y, now.getMonth(), now.getDate())
+
+    }
+    if (maxAge){
+        if (!agg2["$match"]["birthdate"]) {
+            agg2["$match"]["birthdate"] = {}
+        }
+        const max_y = now.getFullYear() - maxAge
+        agg2["$match"]["birthdate"]["$gte"] = new Date(max_y, now.getMonth(), now.getDate())
+    }
+
+    let pipeline = [agg1, agg2, agg3]
     const result1 = await User.aggregate(pipeline)
+
+    // ---
 
     var result2 = []
     var promises = []
     
-    var query = "SELECT * FROM connections WHERE from_user=? AND to_user=?"
+    var query = "SELECT * FROM connections_by_to WHERE from_user=? AND to_user=?"
     result1.forEach((result, i) => {
-        console.log(id, result._id)
         promises[i] = cassandra_db.execute(query, [id, result._id], { prepared: true })
-            .then((result) => {
-                console.log(" result: ",result)
-                result2.push(result)
+            .then((res) => {
+                if (res.rowLength == 0) { 
+                    result2.push(result)
+                }
             })
             .catch(err => console.log("Error: ",err))
     })
     Promise.allSettled(promises).finally(() => {
-        res.status(200).json(result1)
+        res.status(200).json({users: result2})
     })
 })
 
+const getRandom = asyncHandler(async (req,res) => {
+    const { id, gender } = req.query
+    const longitude = parseFloat(req.query.longitude)
+    const latitude = parseFloat(req.query.latitude)
+    const distance = parseFloat(req.query.distance)
+    const minAge = parseInt(req.query.minAge)
+    const maxAge = parseInt(req.query.maxAge)
+
+    const now = new Date(Date.now())
+
+    if (!(id && gender && longitude && latitude)){
+        res.status(400)
+        throw new Error("Empty field")
+    }
+
+    var result1;
+    try {
+        var query = "SELECT * FROM connections WHERE from_user = ?"
+        result1 = await cassandra_db.execute(query, [id])
+    } catch (err) {
+        if (err) {
+            res.status(400).send({ msg:err })
+        }
+    }
+
+    if (result1) {
+        result1 = result1.rows.map(e => e["to_user"].toString())
+    } else {
+        result1 = []
+    }
+    result1.push(id)
+
+    // ---
+
+    let agg1 = { $geoNear: {
+        near: { 
+            type: "Point", 
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+        },
+        distanceField: "distance",
+    }}
+    let agg2 = { $match: { 
+        gender: gender, 
+        discovery: true,
+        _id: { $nin: result1 }, 
+    }}
+    let agg3 = { $sample: { size: 20 } }
+
+    if (distance) {
+        agg1["$geoNear"]["maxDistance"] = distance
+    }
+    if (minAge){
+        if (!agg2["$match"]["birthdate"]) {
+            agg2["$match"]["birthdate"] = {}
+        }
+        const min_y = now.getFullYear() - minAge
+
+        agg2["$match"]["birthdate"]["$lt"] = new Date(min_y, now.getMonth(), now.getDate())
+
+    }
+    if (maxAge){
+        if (!agg2["$match"]["birthdate"]) {
+            agg2["$match"]["birthdate"] = {}
+        }
+        const max_y = now.getFullYear() - maxAge
+        agg2["$match"]["birthdate"]["$gte"] = new Date(max_y, now.getMonth(), now.getDate())
+    }
+
+    let pipeline = [agg1, agg2, agg3]
+   
+    const result2 = await User.aggregate(pipeline)
+    res.status(200).json({"users": result2})
+    
+})
+
 const getUser = asyncHandler(async (req,res) => {
-    const { id } = req.params
+    const { id } = req.query
     if (!id) {
         res.status(400)
         throw new Error("Empty field")
@@ -111,4 +227,4 @@ const updateLocation = asyncHandler(async (req,res) => {
     }
 })
 
-module.exports = { addUser, editUser, getRandom, getUser, updateLocation }
+module.exports = { addUser, editUser, getRandom, getUser, updateLocation, getRandomMC }
