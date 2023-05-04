@@ -38,7 +38,7 @@ const editUser = asyncHandler(async (req,res) => {
     }
     const result = await User.findByIdAndUpdate(id, {
         about
-    })
+    }, { new: true })
     if (!result){
         res.status(404).json("Not found")
     } else {
@@ -67,6 +67,7 @@ const getRandomMC = asyncHandler(async (req,res) => {
             coordinates: [parseFloat(longitude), parseFloat(latitude)]
         },
         distanceField: "distance",
+        // sphere: true
     }}
     let agg2 = { $match: { 
         gender: gender,
@@ -157,6 +158,7 @@ const getRandom = asyncHandler(async (req,res) => {
             coordinates: [parseFloat(longitude), parseFloat(latitude)]
         },
         distanceField: "distance",
+        // sphere: true
     }}
     let agg2 = { $match: { 
         gender: gender, 
@@ -219,7 +221,7 @@ const updateLocation = asyncHandler(async (req,res) => {
                 coordinates: [longitude, latitude]
             }
         }
-    })
+    }, { new: true })
     if (!result){
         res.status(404).json("Not found")
     } else {

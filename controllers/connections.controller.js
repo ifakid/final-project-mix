@@ -23,7 +23,7 @@ const getAllMatch = asyncHandler(async (req,res) => {
     var query = "SELECT * FROM connections_by_type WHERE from_user=? AND status=?"
     try {
         var result = await cassandra_db.execute(query, [id, "Match"])
-        res.send({ messages:result.rows })
+        res.send({ matches:result.rows })
     } catch (err) {
         res.status(404).send({ msg:err })
     }

@@ -28,7 +28,7 @@ const deleteImage = asyncHandler(async (req,res) => {
     } else {
         const result2 = await User.findByIdAndUpdate(userId, {
             $pull: { images: {_id:imageId } }
-        })
+        }, { new: true })
         res.status(200).json(result2)
     }
 })
@@ -45,7 +45,7 @@ const addImage = asyncHandler(async (req,res) => {
     } else {
         const result2 = await User.findByIdAndUpdate(userId, {
             $push: { images: { url: imageUrl }}
-        })
+        }, { new: true })
         res.status(200).json(result2)
     }
 })
